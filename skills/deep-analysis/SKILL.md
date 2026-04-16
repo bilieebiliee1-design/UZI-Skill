@@ -57,19 +57,55 @@ description: 个股深度分析的核心工作流。当用户要求"深度分析
 
 ---
 
-## 🚀 启动流程
+## ⚡ 快速启动（不要犹豫，直接跑）
 
-### 第 0 步 · 识别股票
+当用户要求分析一只股票时，**立即执行以下命令，不要询问用户是否准备好**：
 
-- 解析用户输入 → `ticker` (A 股加 `.SZ`/`.SH`, 港股 `.HK`, 美股原码)
-- 跑 `python scripts/fetch_basic.py {ticker}` 先拿名称/行业，确认是目标股票
-- 向用户确认："正在分析 **{name} ({ticker})** · 行业 {industry}"
+```bash
+# 找到仓库根目录（包含 run.py 的目录）
+cd <repo_root>
+
+# 安装依赖（首次运行需要）
+pip install -r requirements.txt
+
+# 直接跑！ticker 支持代码和中文名
+python run.py <用户输入的股票名或代码>
+```
+
+**示例**：
+```bash
+python run.py 华工科技          # 中文名
+python run.py 000988.SZ         # A 股代码
+python run.py 00700.HK          # 港股
+python run.py AAPL              # 美股
+python run.py 贵州茅台 --remote  # 远程模式（生成公网链接）
+```
+
+`run.py` 会**自动完成所有 6 个 Task**（数据采集 → 机构建模 → 22 维打分 → 51 评委 → 综合研判 → 报告组装），最后输出 HTML 报告路径。
+
+**如果 `run.py` 不存在**（比如只安装了 skill 没有完整仓库），改用：
+```bash
+cd skills/deep-analysis/scripts
+python run_real_test.py <ticker>
+```
+
+**跑完之后你再做下面的"分析师"工作**（审查数据质量、写定性评语、构建叙事）。
 
 ---
 
-### Task 1 · 22 维数据采集 (🤖 脚本主导)
+## 🚀 详细流程（run.py 跑完后的人工审查）
 
-**只做一件事**：执行 `python scripts/run_real_test.py {ticker}`（内置 4-wave 并行 + 数据完整性校验）。
+### 第 0 步 · 识别股票
+
+- `run.py` 已经自动识别了 ticker 并跑完所有 Task
+- 读 `.cache/{ticker}/raw_data.json` 确认数据
+- 向用户汇报："**{name} ({ticker})** 分析完成，正在审查数据质量..."
+
+---
+
+### Task 1-3 · 已由 run.py 自动完成
+
+`run.py` 内部执行了：
 
 这个脚本会：
 1. Wave 1 快速 fetcher（basic/kline/financials/valuation）
