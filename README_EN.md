@@ -15,7 +15,7 @@ China A-Share / HK / US Stock Deep Analysis Engine
 
 [Install](#install) · [Usage](#usage) · [Jury Panel](#-51-investor-jury) · [Methods](#-17-institutional-methods) · [Screenshots](#-what-the-report-looks-like) · [FAQ](#-faq)
 
-[中文](README.md) | **English**
+**English** | [中文](README.md)
 
 </div>
 
