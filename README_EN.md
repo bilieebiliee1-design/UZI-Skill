@@ -332,9 +332,9 @@ A: Yes. akshare / Eastmoney / XueQiu / CNInfo / HKEXNews all serve international
 
 <a href="https://star-history.com/#wbh604/UZI-Skill&Date">
  <picture>
-   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=wbh604/UZI-Skill&type=Date&theme=dark" />
-   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/svg?repos=wbh604/UZI-Skill&type=Date" />
-   <img alt="Star History Chart" src="https://api.star-history.com/svg?repos=wbh604/UZI-Skill&type=Date" />
+   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=wbh604/uzi-skill&type=Date&theme=dark" />
+   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/svg?repos=wbh604/uzi-skill&type=Date" />
+   <img alt="Star History Chart" src="https://api.star-history.com/svg?repos=wbh604/uzi-skill&type=Date" />
  </picture>
 </a>
 
