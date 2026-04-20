@@ -265,31 +265,51 @@ A:
 - `UZI_PIPELINE=1` feature flag · 默认关闭
 
 ### 📊 测试覆盖
-**pytest 全量 304 passed**（255 baseline + 49 新 pipeline · 零回归）
+**pytest 全量 321 passed**（255 baseline + 66 新 pipeline · 零回归）
 - schema: 5 · validators: 12 · base_fetcher: 5 · fund_renderer: 8
-- fetcher_registry: 6 · renderer_registry: 9 · collect: 4
+- fetcher_registry: 6 · renderer_registry: 9 · all_renderers: 12 · collect: 4 · run_pipeline: 5
 
-### ⏳ Phase 5（未来 session）· 非关键 section renderer
-剩余 13 个 dim 的 renderer 待迁：
-- 2_kline / 3_macro / 5_chain / 6_research
-- 8_materials / 9_futures / 10_valuation / 11_governance
-- 12_capital_flow / 13_policy / 16_lhb / 18_trap / 19_contests
+### ✅ Phase 5（已完成）· 剩余 13 个 section renderer
+- `renderer/kline.py` · 2_kline
+- `renderer/macro.py` · 3_macro
+- `renderer/chain.py` · 5_chain
+- `renderer/research.py` · 6_research
+- `renderer/materials.py` · 8_materials
+- `renderer/futures.py` · 9_futures
+- `renderer/valuation.py` · 10_valuation
+- `renderer/governance.py` · 11_governance
+- `renderer/capital_flow.py` · 12_capital_flow
+- `renderer/policy.py` · 13_policy（policy 4 维 emoji）
+- `renderer/lhb.py` · 16_lhb
+- `renderer/trap.py` · 18_trap（风险分 + flags）
+- `renderer/contests.py` · 19_contests
 
-### ⏳ Phase 6（未来 session）· score/synthesize 实装
-- Rules 引擎 + 51 评委打分挪进 `pipeline/score.py`
-- stage2 merge + HTML 组装挪进 `pipeline/synthesize.py`
+**21/21 section renderer 全部到位** · 注册表 `RENDERER_REGISTRY` 完整.
+
+### ✅ Phase 6a（已完成）· score/synthesize delegate wrapper + run_pipeline
+- `pipeline/score.py::score_from_cache(ticker)` · 薄包装 · 内部调 legacy stage1（resume 模式）
+- `pipeline/synthesize.py::synthesize_and_render(ticker)` · 薄包装 · 内部调 legacy stage2
+- `pipeline/run.py::run_pipeline(ticker)` · 完整编排入口
+  - pipeline.collect → 写 raw_data.json → legacy stage1 scoring → legacy stage2 render
+- `UZI_PIPELINE=1` feature flag 仍是 opt-in · 默认用 legacy 路径
+
+### ⏳ Phase 6b（未来 session）· 真正迁移 score/synthesize 内部逻辑
+目前是 delegate wrapper · 内部调 legacy · 真正的内部迁移还没做：
+- Rules 引擎 + 51 评委打分挪进 `pipeline/score.py`（而不是调 rrt.stage1）
+- stage2 merge + HTML 组装挪进 `pipeline/synthesize.py`（而不是调 rrt.stage2）
 - Bull-Bear 辩论 + agent_analysis merge + 机械自查 gate
+- **高风险** · 需精确对齐 legacy 行为 · 建议逐小步推进
 
-### ⏳ Phase 7（未来 session）· 切换入口
-- run.py / stage1() / stage2() 改走 pipeline（`UZI_PIPELINE=1` 开关）
-- 双盲对比：同股票新老流程产出一致
-- 老代码 deprecated 标注
+### ⏳ Phase 7（未来 session）· 切换默认入口
+- run.py 里检测 `UZI_PIPELINE=1` 切换走 pipeline.run_pipeline
+- 双盲对比：同股票新老流程产出 HTML 对比 · 关键字段 diff 为空
+- 先 dark-launch 一段时间 · 用户反馈无异常再考虑切默认
 
 ### ⏳ Phase 8（未来 session）· 瘦身 + 合 main
-- 删 22 个 `fetch_X.py` · adapter 里内化 fetch 逻辑
-- `run_real_test.py` 瘦身到 < 200 行
-- `assemble_report.py` 瘦身到 < 400 行
-- merge `refactor/v3.0.0-pipeline-architecture` → `main`
+- 删 22 个 `fetch_X.py` · adapter 里内化 fetch 逻辑（当前是 adapter 调老 main）
+- `run_real_test.py` 瘦身到 < 200 行（只保留 stage1/stage2 legacy 调度骨架）
+- `assemble_report.py` 瘦身到 < 400 行（删已迁 section 的 render 函数）
+- merge `refactor/v3.0.0-pipeline-architecture` → `main` · tag v3.0.0
 
 ## 老入口保持工作
 
