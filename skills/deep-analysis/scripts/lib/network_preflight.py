@@ -100,26 +100,59 @@ class NetworkProfile:
 
 
 def _probe(domain: str, port: int = 443, timeout: float = 3.0) -> DomainCheck:
+    import urllib.request
+    from urllib.error import HTTPError, URLError
     t0 = time.time()
-    try:
-        sock = socket.create_connection((domain, port), timeout=timeout)
-        sock.close()
+    url = f"https://{domain}/" if port == 443 else f"http://{domain}:{port}/"
+
+    def _try(opener: urllib.request.OpenerDirector) -> tuple[bool, str]:
+        req = urllib.request.Request(url, method="HEAD")
+        req.add_header("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64)")
+        try:
+            with opener.open(req, timeout=timeout):
+                return True, ""
+        except HTTPError as e:
+            if e.code in (407, 502, 503, 504):
+                return False, f"HTTP {e.code}"
+            return True, f"HTTP {e.code}"
+        except URLError as e:
+            reason = getattr(e, "reason", None)
+            if reason is None:
+                return False, f"URLError: {str(e)[:80]}"
+            return False, f"{type(reason).__name__}: {str(reason)[:80]}"
+        except Exception as e:
+            return False, f"{type(e).__name__}: {str(e)[:80]}"
+
+    has_proxy, _ = _detect_proxy()
+    if has_proxy:
+        ok_proxy, err_proxy = _try(urllib.request.build_opener())
+        if ok_proxy:
+            return DomainCheck(
+                domain=domain, group="", reachable=True,
+                latency_ms=int((time.time() - t0) * 1000),
+            )
+
+        direct_opener = urllib.request.build_opener(urllib.request.ProxyHandler({}))
+        ok_direct, err_direct = _try(direct_opener)
+        if ok_direct:
+            return DomainCheck(
+                domain=domain, group="", reachable=True,
+                latency_ms=int((time.time() - t0) * 1000),
+                error=f"proxy_fail: {err_proxy}",
+            )
+
         return DomainCheck(
-            domain=domain, group="", reachable=True,
+            domain=domain, group="", reachable=False,
             latency_ms=int((time.time() - t0) * 1000),
+            error=f"proxy_fail: {err_proxy}; direct_fail: {err_direct}",
         )
-    except socket.gaierror as e:
-        return DomainCheck(domain=domain, group="", reachable=False,
-                           latency_ms=int((time.time() - t0) * 1000),
-                           error=f"DNS fail: {e}")
-    except socket.timeout:
-        return DomainCheck(domain=domain, group="", reachable=False,
-                           latency_ms=int(timeout * 1000),
-                           error=f"timeout > {timeout}s")
-    except Exception as e:
-        return DomainCheck(domain=domain, group="", reachable=False,
-                           latency_ms=int((time.time() - t0) * 1000),
-                           error=f"{type(e).__name__}: {str(e)[:80]}")
+
+    ok_direct, err_direct = _try(urllib.request.build_opener(urllib.request.ProxyHandler({})))
+    return DomainCheck(
+        domain=domain, group="", reachable=ok_direct,
+        latency_ms=int((time.time() - t0) * 1000),
+        error="" if ok_direct else err_direct,
+    )
 
 
 def _detect_proxy() -> tuple[bool, str]:
